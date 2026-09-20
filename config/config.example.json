@@ -1,0 +1,94 @@
+{
+  "profile": {
+    "name": "computer-vision-generative-models",
+    "description": "Research profile for computer vision with an emphasis on generative modeling."
+  },
+  "research": {
+    "summary": "The user is interested in computer vision research, especially generative models for images and videos.",
+    "interests": [
+      "image generation",
+      "video generation",
+      "diffusion models",
+      "flow matching",
+      "rectified flow",
+      "consistency models",
+      "autoregressive visual generation",
+      "latent generative models",
+      "controllable image generation",
+      "text-to-image generation",
+      "text-to-video generation",
+      "image-to-image generation",
+      "video prediction",
+      "visual representation learning useful for generation",
+      "multimodal generative models",
+      "3D generative models"
+    ],
+    "related_topics": [
+      "vision transformers",
+      "self-supervised visual learning",
+      "multimodal learning",
+      "vision-language models",
+      "3D vision",
+      "neural rendering",
+      "world models",
+      "visual tokenization"
+    ],
+    "negative_topics": [
+      "pure natural language processing with no visual component",
+      "database systems",
+      "network security",
+      "software engineering",
+      "classical optimization unrelated to machine learning or vision",
+      "recommendation systems with no visual component"
+    ],
+    "evaluation_guidance": [
+      "Judge methodological relevance, not only keyword overlap.",
+      "A paper can be relevant even if it does not explicitly use the phrase generative model.",
+      "Methods that could substantially improve visual generation should be considered relevant.",
+      "General computer vision papers should receive a high score only if the method is plausibly useful for generative visual modeling.",
+      "Papers that are only superficially related should receive a low score."
+    ]
+  },
+  "sources": {
+    "arxiv": {
+      "enabled": true,
+      "categories": [
+        "cs.CV",
+        "cs.LG",
+        "cs.AI",
+        "cs.GR"
+      ],
+      "max_results": 300,
+      "sort_by": "submitted_date",
+      "sort_order": "descending"
+    }
+  },
+  "evaluation": {
+    "relevance_threshold": 0.5,
+    "high_priority_threshold": 0.8,
+    "dimensions": {
+      "enabled": true,
+      "questions": {
+        "generation": "Is this paper relevant to visual generative modeling?",
+        "image_generation": "Is this paper relevant to image generation?",
+        "video_generation": "Is this paper relevant to video generation?",
+        "diffusion_or_flow": "Is this paper relevant to diffusion, flow matching, rectified flow, consistency models, or closely related generative methods?",
+        "multimodal": "Is this paper relevant to multimodal generative models involving visual information?",
+        "three_d": "Is this paper relevant to 3D generative modeling, neural rendering, or generative 3D vision?"
+      }
+    }
+  },
+  "storage": {
+    "seen_file": "data/seen.json",
+    "database_file": "data/papers.jsonl",
+    "daily_output_dir": "daily"
+  },
+  "output": {
+    "markdown": true,
+    "json": true,
+    "include_irrelevant": false,
+    "max_papers_in_report": 50,
+    "sort_by": "relevance_score",
+    "sort_order": "descending"
+  }
+}
