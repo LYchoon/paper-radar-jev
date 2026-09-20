@@ -21,7 +21,7 @@ def test_partial_failure_and_same_day_rerun(config_path, paper, client):
     second = pipeline.run_pipeline(config_path, fetcher=fetcher, client=client, today=DAY)
     assert (second.evaluated, second.failed) == (0, 1)
     client.system_one.assert_called_once()
-    report = json.loads((config_path.parent / "daily/2026-09-20.json").read_text(encoding="utf-8"))
+    report = json.loads((config_path.parent / "daily/json/2026-09-20.json").read_text(encoding="utf-8"))
     assert report["statistics"]["evaluated"] == 1
     assert len(load_database(config_path.parent / "data/papers.jsonl")) == 1
 
@@ -46,7 +46,7 @@ def test_report_failure_recovers_without_reevaluation(config_path, paper, client
     pipeline.run_pipeline(config_path, fetcher=lambda _: [paper], client=client,
                           today=date(2026, 9, 21))
     client.system_one.assert_called_once()
-    assert (config_path.parent / "daily/2026-09-20.md").exists()
+    assert (config_path.parent / "daily/md/2026-09-20.md").exists()
     assert load_seen(config_path.parent / "data/seen.json") == {paper.id}
 
 

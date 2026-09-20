@@ -65,7 +65,7 @@ uv run paper-radar --config config/config.json
 uv run python main.py --config config/config.json
 ```
 
-結果會寫入 `daily/YYYY-MM-DD.md` 與 `daily/YYYY-MM-DD.json`；歷史資料與已處理清單保存在 `data/`。
+結果會寫入 `daily/md/YYYY-MM-DD.md` 與 `daily/json/YYYY-MM-DD.json`；歷史資料與已處理清單保存在 `data/`。
 
 ### 環境檔載入與優先順序
 
@@ -106,8 +106,8 @@ unset TYPESAFE_API_KEY
 | `evaluation.relevance_threshold` | 相關性門檻，預設 0.5，包含等號 |
 | `evaluation.high_priority_threshold` | 高優先門檻，預設 0.8 |
 | `evaluation.dimensions` | 多維度問題開關及自訂問題 |
-| `output.include_irrelevant` | 是否列出未達門檻的論文 |
-| `output.max_papers_in_report` | 最多列出篇數，預設 50 |
+| `output.include_irrelevant` | Markdown 是否列出未達門檻的論文；不影響 JSON |
+| `output.max_papers_in_report` | Markdown 最多列出篇數，預設 50；不影響 JSON |
 | `output.markdown / json` | 輸出格式，至少開啟一種 |
 
 報告預設由高分至低分，也支援 `output.sort_order = "ascending"`。arXiv 的 `sort_by` 支援 `submitted_date`、`last_updated_date`、`relevance`；`sort_order` 支援 `ascending`、`descending`。
@@ -132,7 +132,7 @@ unset TYPESAFE_API_KEY
 
 ## 輸出與可靠性
 
-- 產生 `daily/YYYY-MM-DD.md` 和 `daily/YYYY-MM-DD.json`。
+- 產生 `daily/md/YYYY-MM-DD.md` 和 `daily/json/YYYY-MM-DD.json`。
 - `data/seen.json` 記錄成功處理 ID，`data/papers.jsonl` 保存全部成功結果，包含低分論文。
 - arXiv v1、v2 視為同一篇，亦支援舊式 arXiv ID。
 - 不限制過去 24 小時；每次將最新 N 篇與已處理資料比對。若長時間未執行且累積超過 N 篇，仍可能漏掉較早論文，可提高 N 補抓。
@@ -142,11 +142,13 @@ unset TYPESAFE_API_KEY
 - 每篇成功評分先保存 JSONL，報告完成才更新 seen；中途退出後，下次會從資料庫恢復，避免重複評分已保存的論文。
 - 同日重跑會保留並合併當日結果，沒有新論文時不會清空既有報告。
 - 每次從資料庫重建各日期報告，可恢復中斷的報告寫入；日期採本機執行日期。
-- 報告統計涵蓋當日全部成功結果，列出篇數另受篩選及上限影響。該次失敗篇數在 CLI 日誌與退出碼中顯示。
+- 報告統計涵蓋當日全部成功結果。只有 Markdown 套用相關性篩選與篇數上限；JSON 保留所有成功評分結果（含低分論文）、完整 metadata 與全部維度分數，不做顯示用的小數截斷。各格式的 `statistics.shown` 表示該檔包含的篇數。API 失敗時尚無計算結果，會留待重試；失敗篇數在 CLI 日誌與退出碼中顯示。
 - JSONL 每行包含論文欄位、`date` 與 `profile_key`。MVP 使用原子重寫新增資料，避免半行損壞；日後資料大量累積可改為 SQLite。
 - seen、資料庫與報告採暫存檔加原子替換，檔案鎖防止共用儲存路徑的程序同時寫入。鎖檔保留是正常行為，程序結束後會釋放 OS lock。
 - 資料損壞或 seen 含有資料庫不存在的 ID 時，程式停止並保留原檔；請還原備份或封存整組資料後重建。
 - 關閉 arXiv 來源時不抓新論文，仍可重建既有報告。
+
+舊版直接放在 `daily/` 的報告會保留。下次成功執行時，會從 `data/papers.jsonl` 將歷史報告重新產生到 `daily/md/` 和 `daily/json/`，不會重新評分已保存的論文。
 
 ## 測試
 

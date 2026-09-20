@@ -27,10 +27,13 @@ def escape_markdown(value: str) -> str:
     return re.sub(r"([\\\x60*_{}\[\]()#+.!|>~-])", r"\\\1", value)
 
 
-def build_report(papers: list[EvaluatedPaper], config: Config, day: str) -> dict:
-    selected = [p for p in sort_papers(papers, config)
-                if config.output.include_irrelevant or p.relevant]
-    selected = selected[:config.output.max_papers_in_report]
+def build_report(papers: list[EvaluatedPaper], config: Config, day: str,
+                 *, apply_filters: bool = True) -> dict:
+    """Build a Markdown selection or the complete JSON evaluation results."""
+    selected = sort_papers(papers, config)
+    if apply_filters:
+        selected = [p for p in selected if config.output.include_irrelevant or p.relevant]
+        selected = selected[:config.output.max_papers_in_report]
     return {
         "date": day, "profile": config.profile.name,
         "statistics": {"evaluated": len(papers), "relevant": sum(p.relevant for p in papers),
@@ -69,14 +72,15 @@ def render_markdown(report: dict) -> str:
 
 def save_daily_report(papers: list[EvaluatedPaper], config: Config, day: str,
                       directory: Path) -> list[Path]:
-    report = build_report(papers, config, day)
     outputs = []
     if config.output.markdown:
-        path = directory / f"{day}.md"
+        report = build_report(papers, config, day, apply_filters=True)
+        path = directory / "md" / f"{day}.md"
         atomic_write(path, render_markdown(report))
         outputs.append(path)
     if config.output.json_output:
-        path = directory / f"{day}.json"
+        report = build_report(papers, config, day, apply_filters=False)
+        path = directory / "json" / f"{day}.json"
         atomic_write(path, json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
         outputs.append(path)
     return outputs

@@ -65,7 +65,7 @@ The original entry point is also supported:
 uv run python main.py --config config/config.json
 ```
 
-Reports are written to `daily/YYYY-MM-DD.md` and `daily/YYYY-MM-DD.json`. Historical results and processed IDs are stored in `data/`.
+Reports are written to `daily/md/YYYY-MM-DD.md` and `daily/json/YYYY-MM-DD.json`. Historical results and processed IDs are stored in `data/`.
 
 ### Environment files and precedence
 
@@ -106,8 +106,8 @@ The example targets Computer Vision / Generative Models. All research-specific d
 | `evaluation.relevance_threshold` | Inclusive relevance threshold; default 0.5 |
 | `evaluation.high_priority_threshold` | High-priority threshold; default 0.8 |
 | `evaluation.dimensions` | Enable and define additional evaluation questions |
-| `output.include_irrelevant` | Include papers below the relevance threshold |
-| `output.max_papers_in_report` | Maximum papers displayed; default 50 |
+| `output.include_irrelevant` | Include below-threshold papers in Markdown only |
+| `output.max_papers_in_report` | Maximum papers in Markdown only; default 50 |
 | `output.markdown / json` | Output formats; at least one must be enabled |
 
 Reports sort by decreasing relevance score by default; `output.sort_order = "ascending"` is also supported. arXiv `sort_by` accepts `submitted_date`, `last_updated_date`, or `relevance`. Its `sort_order` accepts `ascending` or `descending`.
@@ -132,7 +132,7 @@ Alternatively, archive the old dataset and start fresh. The application rejects 
 
 ## Output and recovery
 
-- Generates `daily/YYYY-MM-DD.md` and `daily/YYYY-MM-DD.json`.
+- Generates `daily/md/YYYY-MM-DD.md` and `daily/json/YYYY-MM-DD.json`.
 - `data/seen.json` tracks successfully processed IDs. `data/papers.jsonl` stores all successful evaluations, including low-scoring papers.
 - Versions such as arXiv v1 and v2 are treated as the same paper. Legacy IDs are supported.
 - No fixed 24-hour window is used. The latest N papers are compared against processed IDs. If more than N papers accumulate between runs, older papers can still be missed; increase N to catch up.
@@ -142,11 +142,13 @@ Alternatively, archive the old dataset and start fresh. The application rejects 
 - Each successful evaluation is saved to JSONL before reporting. The seen file is updated after reports are written. Subsequent runs recover persisted evaluations without scoring those papers again.
 - Repeated runs on the same day preserve and combine results. A run with no new papers does not erase the existing report.
 - Reports for every recorded date are rebuilt from the database to recover interrupted writes. Dates use the local execution date.
-- Statistics cover all successful evaluations for the day; displayed papers are subject to filtering and limits. Failures for the current run appear in CLI logs and the exit code.
+- Statistics cover all successful evaluations for the day. Markdown applies relevance filtering and the display limit; JSON always contains every successful evaluation, including low scores, complete metadata, and all dimension scores, without display rounding. In each format, `statistics.shown` counts its included papers. Failed API requests have no computed result and remain retryable; their count appears in CLI logs and the exit code.
 - Each JSONL record contains paper fields, `date`, and `profile_key`. The MVP adds records through atomic file rewrites to avoid partial lines; larger datasets could migrate to SQLite.
 - Seen files, the database, and reports use temporary files followed by atomic replacement. File locks prevent concurrent writes to shared storage. Lock files may remain on disk; their OS locks are released when the process exits.
 - Corrupt data, or seen IDs missing from the database, stop the run while preserving the original files. Restore a backup or archive the dataset before starting fresh.
 - Disabling arXiv skips fetching new papers but still allows existing reports to be rebuilt.
+
+Existing reports in the old `daily/` layout are left in place. On the next successful run, historical reports are rebuilt from `data/papers.jsonl` into `daily/md/` and `daily/json/`, without reevaluating persisted papers.
 
 ## Tests
 
