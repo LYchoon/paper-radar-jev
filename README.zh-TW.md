@@ -174,6 +174,7 @@ uv run pytest -q
 
 ```text
 paper-radar-jev/
+├── LICENSE
 ├── README.md
 ├── README.zh-TW.md
 ├── pyproject.toml
@@ -208,6 +209,12 @@ paper-radar-jev/
 ```
 
 `.env` 與 `config/config.json` 由使用者從範例建立；`.venv/` 與實際資料於安裝或執行後建立。`uv.lock` 應保留在版本控制中，個人 config、資料、報告和 `.env` 則已列入 `.gitignore`。本版不包含排程、自動 commit 或 push。
+
+## 授權
+
+本專案採用 [MIT 授權](LICENSE)。
+
+Copyright (c) 2026 LYchoon.
 
 ## 官方參考
 

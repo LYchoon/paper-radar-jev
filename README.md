@@ -174,6 +174,7 @@ For a live smoke test, set `max_results` to 3, optionally disable dimensions, an
 
 ```text
 paper-radar-jev/
+├── LICENSE
 ├── README.md
 ├── README.zh-TW.md
 ├── pyproject.toml
@@ -208,6 +209,12 @@ paper-radar-jev/
 ```
 
 Create `.env` and `config/config.json` from the examples. `.venv/` and runtime data are created during installation or execution. Keep `uv.lock` in version control; personal configuration, data, reports, and `.env` are ignored. This version does not schedule runs or automatically commit or push changes.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 LYchoon.
 
 ## Official references
 
