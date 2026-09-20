@@ -36,7 +36,7 @@ def test_fetch_metadata_and_deduplication(config):
 
     class FakeClient:
         def results(self, search):
-            assert search.max_results == 300
+            assert search.max_results == 100
             assert search.sort_by == arxiv.SortCriterion.SubmittedDate
             assert search.sort_order == arxiv.SortOrder.Descending
             return [row, row]
@@ -52,3 +52,35 @@ def test_fetch_metadata_and_deduplication(config):
 def test_disabled(config):
     config.sources.arxiv.enabled = False
     assert fetch_latest_papers(config) == []
+
+
+@pytest.mark.parametrize("status", [403, 429, 500, 503])
+def test_http_error_exposes_status_and_offset(config, status):
+    from paper_radar.fetch import ArxivFetchError
+
+    class FailedClient:
+        def results(self, search):
+            raise arxiv.HTTPError(
+                "https://export.arxiv.org/api/query?start=100&search_query=private-topic",
+                3, status,
+            )
+            yield  # Exercise errors raised during iterator consumption.
+
+    with pytest.raises(ArxivFetchError) as caught:
+        fetch_latest_papers(config, FailedClient())
+    message = str(caught.value)
+    assert f"HTTP {status}" in message
+    assert "start=100" in message
+    assert "3 retries" in message
+    assert "private-topic" not in message
+
+
+def test_small_run_limits_request_page_size(config, monkeypatch):
+    from unittest.mock import Mock
+
+    config.sources.arxiv.max_results = 3
+    factory = Mock()
+    factory.return_value.results.return_value = []
+    monkeypatch.setattr(arxiv, "Client", factory)
+    fetch_latest_papers(config)
+    assert factory.call_args.kwargs["page_size"] == 3

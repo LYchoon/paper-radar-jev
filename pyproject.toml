@@ -3,7 +3,7 @@ name = "paper-radar"
 version = "0.1.0"
 description = "Configurable arXiv relevance ranking with TypeSafe AI"
 requires-python = ">=3.11"
-dependencies = ["arxiv>=2.2,<3", "typesafe-sdk>=0.6,<0.7", "pydantic>=2.10,<3", "filelock>=3.16,<4"]
+dependencies = ["arxiv>=2.2,<3", "typesafe-sdk>=0.6,<0.7", "pydantic>=2.10,<3", "filelock>=3.16,<4", "python-dotenv>=1.0,<2"]
 
 [project.scripts]
 paper-radar = "paper_radar.cli:main"

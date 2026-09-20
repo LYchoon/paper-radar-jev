@@ -58,7 +58,7 @@
         "cs.AI",
         "cs.GR"
       ],
-      "max_results": 300,
+      "max_results": 100,
       "sort_by": "submitted_date",
       "sort_order": "descending"
     }

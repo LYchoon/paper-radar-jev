@@ -75,7 +75,7 @@ def save_daily_report(papers: list[EvaluatedPaper], config: Config, day: str,
         path = directory / f"{day}.md"
         atomic_write(path, render_markdown(report))
         outputs.append(path)
-    if config.output.json:
+    if config.output.json_output:
         path = directory / f"{day}.json"
         atomic_write(path, json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
         outputs.append(path)

@@ -2,6 +2,7 @@
 import math
 import os
 from dataclasses import asdict
+from pathlib import Path
 
 from .config import Config
 from .models import EvaluatedPaper, Paper
@@ -16,9 +17,14 @@ OVERALL_RELEVANCE_INSTRUCTION = (
 )
 
 
-def create_client():
+def create_client(env_file: Path | None = None):
+    if env_file is not None:
+        from dotenv import load_dotenv
+
+        # Explicit path avoids searching unrelated parent directories.
+        load_dotenv(dotenv_path=env_file, override=False, encoding="utf-8-sig")
     if not os.environ.get("TYPESAFE_API_KEY", "").strip():
-        raise ValueError("Missing TYPESAFE_API_KEY environment variable")
+        raise ValueError("Missing TYPESAFE_API_KEY: set it in the project .env file or environment")
     from typesafe_sdk import RetryPolicy, TypeSafeClient
 
     # Exactly one retry layer: initial request + at most three retries.

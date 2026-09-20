@@ -9,7 +9,7 @@ from pathlib import Path
 from filelock import FileLock
 from pydantic import TypeAdapter
 
-from .config import Config, load_config, storage_paths
+from .config import Config, load_config, project_root, storage_paths
 from .evaluator import create_client, evaluate_paper
 from .fetch import fetch_latest_papers
 from .models import EvaluatedPaper
@@ -70,7 +70,7 @@ def run_pipeline(config_path: str | Path, *, fetcher=None, client=None,
         succeeded = 0
         manager = nullcontext(client)
         if new and client is None:
-            manager = create_client()
+            manager = create_client(env_file=project_root(config_path) / ".env")
         with manager as active_client:
             for index, paper in enumerate(new.values(), 1):
                 logger.info("[%d/%d] %s", index, len(new), paper.id)

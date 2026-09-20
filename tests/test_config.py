@@ -9,7 +9,7 @@ from paper_radar.config import Config, load_config, storage_paths
 def test_config_loads_bom(tmp_path, raw_config):
     path = tmp_path / "config.json"
     path.write_text(json.dumps(raw_config), encoding="utf-8-sig")
-    assert load_config(path).sources.arxiv.max_results == 300
+    assert load_config(path).sources.arxiv.max_results == 100
 
 
 @pytest.mark.parametrize("section,field,value", [

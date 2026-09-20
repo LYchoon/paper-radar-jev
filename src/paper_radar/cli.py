@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .config import load_config, storage_paths
 from .pipeline import run_pipeline
+from .fetch import ArxivFetchError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -24,6 +25,9 @@ def main(argv: list[str] | None = None) -> int:
         result = run_pipeline(args.config)
         logging.info("Finished: %d evaluated, %d failed", result.evaluated, result.failed)
         return 2 if result.failed else 0
+    except ArxivFetchError as exc:
+        logging.error("%s", exc)
+        return 1
     except KeyboardInterrupt:
         logging.error("Interrupted; persisted evaluations will be recovered on the next run")
         return 130

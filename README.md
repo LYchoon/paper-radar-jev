@@ -4,36 +4,88 @@
 
 ## 安裝與執行
 
-需要 Python 3.11+ 與 [uv](https://docs.astral.sh/uv/getting-started/installation/)。PowerShell：
+需要 Python 3.11+、Git 與 [uv](https://docs.astral.sh/uv/getting-started/installation/)，以及自己的 TypeSafe API key。
 
-```powershell
-cd "C:\Users\choon\Documents\Codex\2026-09-20\ban\outputs\paper-radar"
+### 1. 取得專案與安裝依賴
+
+將下列 `YOUR_REPOSITORY_URL` 換成此專案的 GitHub clone URL。已下載專案者直接在專案根目錄執行 `uv sync`。
+
+```sh
+git clone YOUR_REPOSITORY_URL paper-radar
+cd paper-radar
 uv sync
 ```
 
-交付已包含範例內容的 `config/config.json`。若從 Git 取得專案，先執行：
+`uv sync` 會建立 `.venv`，並依 `pyproject.toml` 與 `uv.lock` 安裝依賴。若沒有鎖定檔或依賴有變更，uv 會產生或更新 `uv.lock`；維護者應提交該檔，讓其他人使用相同版本。
+
+### 2. 建立本機設定檔
+
+Windows PowerShell：
 
 ```powershell
-Copy-Item config/config.example.json config/config.json
+if (-not (Test-Path .env)) {
+    Copy-Item .env.example .env
+}
+if (-not (Test-Path config/config.json)) {
+    Copy-Item config/config.example.json config/config.json
+}
 ```
 
-修改研究設定，再執行：
+macOS / Linux（Bash 或 Zsh）：
 
-```powershell
+```sh
+[ -e .env ] || cp .env.example .env
+[ -e config/config.json ] || cp config/config.example.json config/config.json
+```
+
+以上指令會保留已存在的本機設定。編輯專案根目錄的 `.env`，將空白值換成自己的 key：
+
+```dotenv
+TYPESAFE_API_KEY=你的實際API_KEY
+```
+
+請將真實 key 寫入 `.env`，不要寫進 `.env.example`。再編輯 `config/config.json` 設定研究方向；預設範例為 Computer Vision / Generative Models。
+
+首次試跑可先將 `sources.arxiv.max_results` 改為 3，確認完整流程後再提高篇數。
+
+### 3. 驗證設定與執行
+
+```sh
 uv run paper-radar --config config/config.json --check-config
-$env:TYPESAFE_API_KEY = "填入你的 TypeSafe API key"
 uv run paper-radar --config config/config.json
 ```
 
-亦支援：
+`--check-config` 只驗證 JSON 設定，不會驗證 API key 或連線。正式執行會從 arXiv 抓取論文，再送研究設定、論文標題、摘要及分類至 TypeSafe 評分。
 
-```powershell
+亦支援原始入口：
+
+```sh
 uv run python main.py --config config/config.json
 ```
 
-第一次 `uv sync` 會建立虛擬環境與 `uv.lock`；請保留並提交鎖定檔，之後可使用 `uv sync --locked`。依使用者要求，本次未安裝依賴，未產生鎖定檔。
+結果會寫入 `daily/YYYY-MM-DD.md` 與 `daily/YYYY-MM-DD.json`；歷史資料與已處理清單保存在 `data/`。
 
-API key 只讀取環境變數，不自動讀取 `.env`。SDK 可透過 `TYPESAFE_DEFAULT_MODEL` 選擇模型。研究設定和論文標題、摘要、分類會送至 TypeSafe。
+### 環境檔載入與優先順序
+
+程式透過 [python-dotenv](https://bbc2.github.io/python-dotenv/) 自動載入專案根目錄的 `.env`。使用自訂設定檔時，環境檔位置跟隨下方 storage 的基準目錄，不搜尋其他上層目錄。
+
+已存在的環境變數優先，`.env` 不會覆寫它。若先前設定過舊 key，想改用檔案中的值，請先清除目前 shell 的環境變數：
+
+PowerShell：
+
+```powershell
+Remove-Item Env:TYPESAFE_API_KEY -ErrorAction SilentlyContinue
+```
+
+Bash / Zsh：
+
+```sh
+unset TYPESAFE_API_KEY
+```
+
+可選擇在 `.env` 設定 `TYPESAFE_DEFAULT_MODEL`；未設定時使用 SDK 預設模型。修改 `.env` 後重新啟動指令即可。
+
+`.env.example` 與 `config/config.example.json` 是可提交的公開範例；`.env`、個人 `config/config.json`、產生的資料和報告都由 `.gitignore` 排除。
 
 ## 設定
 
@@ -48,7 +100,7 @@ API key 只讀取環境變數，不自動讀取 `.env`。SDK 可透過 `TYPESAFE
 | `research.negative_topics` | 排除主題 |
 | `research.evaluation_guidance` | 判斷準則 |
 | `sources.arxiv.categories` | 預設 cs.CV、cs.LG、cs.AI、cs.GR |
-| `sources.arxiv.max_results` | 每次取最新 N 篇，預設 300 |
+| `sources.arxiv.max_results` | 每次取最新 N 篇，預設 100 |
 | `evaluation.relevance_threshold` | 相關性門檻，預設 0.5，包含等號 |
 | `evaluation.high_priority_threshold` | 高優先門檻，預設 0.8 |
 | `evaluation.dimensions` | 多維度問題開關及自訂問題 |
@@ -96,7 +148,7 @@ API key 只讀取環境變數，不自動讀取 `.env`。SDK 可透過 `TYPESAFE
 
 ## 測試
 
-依使用者要求，本次只做 Python 語法檢查，沒有執行 pytest、安裝依賴或呼叫真實 API。
+在專案根目錄執行：
 
 ```powershell
 uv sync
@@ -121,6 +173,7 @@ paper-radar/
 ├── README.md
 ├── pyproject.toml
 ├── .gitignore
+├── .env.example
 ├── main.py
 ├── config/
 │   ├── config.example.json
@@ -149,7 +202,7 @@ paper-radar/
 └── daily/.gitkeep
 ```
 
-`uv.lock`、`.venv/` 與實際資料於安裝或執行後建立。個人 config、資料、報告和 `.env` 已列入 `.gitignore`。本版不包含排程、自動 commit 或 push。
+`.env` 與 `config/config.json` 由使用者從範例建立；`.venv/` 與實際資料於安裝或執行後建立。`uv.lock` 應保留在版本控制中，個人 config、資料、報告和 `.env` 則已列入 `.gitignore`。本版不包含排程、自動 commit 或 push。
 
 ## 官方參考
 

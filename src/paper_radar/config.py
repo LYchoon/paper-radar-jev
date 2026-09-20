@@ -29,7 +29,7 @@ class Research(Schema):
 class Arxiv(Schema):
     enabled: bool = True
     categories: list[Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9.-]*$")]] = Field(min_length=1)
-    max_results: int = Field(default=300, gt=0)
+    max_results: int = Field(default=100, gt=0)
     sort_by: Literal["submitted_date", "last_updated_date", "relevance"] = "submitted_date"
     sort_order: Literal["descending", "ascending"] = "descending"
 
@@ -71,7 +71,7 @@ class Storage(Schema):
 
 class Output(Schema):
     markdown: bool = True
-    json: bool = True
+    json_output: bool = Field(default=True, alias="json")
     include_irrelevant: bool = False
     max_papers_in_report: int = Field(default=50, gt=0)
     sort_by: Literal["relevance_score"] = "relevance_score"
@@ -79,7 +79,7 @@ class Output(Schema):
 
     @model_validator(mode="after")
     def validate_formats(self):
-        if not (self.markdown or self.json):
+        if not (self.markdown or self.json_output):
             raise ValueError("at least one output format must be enabled")
         return self
 
@@ -99,9 +99,13 @@ def load_config(path: str | Path) -> Config:
         return Config.model_validate(json.load(stream))
 
 
-def storage_paths(config: Config, config_path: Path) -> tuple[Path, Path, Path]:
+def project_root(config_path: Path) -> Path:
     parent = config_path.resolve().parent
-    base = parent.parent if parent.name == "config" else parent
+    return parent.parent if parent.name == "config" else parent
+
+
+def storage_paths(config: Config, config_path: Path) -> tuple[Path, Path, Path]:
+    base = project_root(config_path)
     paths = tuple((base / value).resolve() for value in (
         config.storage.seen_file, config.storage.database_file,
         config.storage.daily_output_dir,

@@ -1,13 +1,55 @@
+# API keys and local environment files (including backups/variants)
+.env
+.env.*
+*.env
+*.env.*
+.envrc
+# Public template only; actual .env files remain ignored
+!/.env.example
+
+# Personal research profiles; only the public example is versioned
+/config/*
+!/config/config.example.json
+/config.json
+/config.*.json
+!/config.example.json
+
+# Local credential files and private keys
+secrets/
+credentials/
+secrets.*
+credentials.*
+api_key*
+api-key*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Generated research data, reports, and logs
+/data/*
+!/data/.gitkeep
+/daily/*
+!/daily/.gitkeep
+*.log
+
+# Python environments, caches, and build outputs
 .venv/
+venv/
 __pycache__/
 .pytest_cache/
-*.pyc
-.env
-config/config.json
-data/*
-!data/.gitkeep
-daily/*
-!daily/.gitkeep
+.ruff_cache/
+.mypy_cache/
+*.py[cod]
+.coverage
+.coverage.*
+htmlcov/
 dist/
+build/
 *.egg-info/
 
+# Local editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
